@@ -1,17 +1,16 @@
 <!DOCTYPE html>
-
+<?php
+    if (!isset($_SESSION['logging']))
+    {
+        $_SESSION['logging']=false;
+    }
+    //header("Refresh:0");
+?>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-            td{
-                border: 1px solid black;
-                text-align: center;
-                width: 9%;
-                height: 5%;
-            }
-    </style>
+    <link rel="stylesheet" href="styl.css">
     <title>Document</title>
 </head>
 <body>
@@ -49,7 +48,7 @@
                 echo '<form method="POST">
                 <input type="submit" name="zaloguj" value="zaloguj">
                 <input type="submit" name="zarejestruj" value="zarejestruj">
-            </form>';
+                </form>';
             }
             
 
@@ -61,6 +60,8 @@
                 $dni=$row['dzien'].":".$row['miesiac'].":".$row['rok'];
                 echo("<input type='hidden' value=".$dni." id='zajete'>");
             }
+            
+            
             mysqli_close($con);
 
             $plik2=fopen("promocje.txt", "c+");      
@@ -94,215 +95,21 @@
             </tr><tr><td style="display: none;"></td><td style="display: none;"></td><td style="display: none;"></td><td style="display: none;"></td><td style="display: none;"></td><td style="display: none;"></td><td style="display: none;"></td></tr><tr>
             </tr></tbody>
             </table>
-            <script>
-
-            var aMonths = new Array('styczeń','luty','marzec','kwiecień','maj','czerwiec','lipiec','sierpień','wrzesień','październik','listopad','grudzień');
-            var date    = new Date();
-            var date1    = new Date();
-
-            Calendar();
-
-            document.querySelector('#prev').addEventListener('click',PrevMonth);
-            document.querySelector('#next').addEventListener('click',NextMonth);
-            
-
-            function PrevMonth(){
-            
-                document.getElementById("prev").disabled=false;
-                date = new Date(date.getFullYear(), date.getMonth() - 1, 1);
-                Calendar();
-                
-            }
-            
-            
-
-            function NextMonth(){
-            document.getElementById("prev").disabled=false;
-            date = new Date(date.getFullYear(), date.getMonth() + 1, 1);
-            Calendar();
-            }
-
-            function Calendar(){
-            if (date.getFullYear()==date1.getFullYear() && date.getMonth()==date1.getMonth())
-            {
-                document.getElementById("prev").disabled=true;
-            }
-            const   td       = document.querySelectorAll('#calendar tbody td');
-            const   firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
-            const   lastDay  = new Date(date.getFullYear(), date.getMonth() + 1, 0);
-            const   day      = firstDay.getDay() ? firstDay.getDay()-1 : 6;
-            const dnizaj=[];
-            const zajeteInput = document.querySelectorAll('#zajete');
-            for (let i = 0; i < zajeteInput.length; i++)
-            {
-                const zajete = zajeteInput[i].value.split(",");
-            
-            
-                console.log(zajete);
-                
-                for (let j = 0; j < zajete.length; j++) 
-                {
-                    const tab = zajete[j].split(":");
-                    console.log(tab);
-                    const mon = parseInt(tab[1]);
-                    
-                    if (mon==(date.getMonth()+1))
-                    {
-                        dnizaj.push(parseInt(tab[0]));
-                        
-                    }
-
-                }
-            }
-            console.log(date1.getDate());
-            
-
-            document.querySelector('#calendar_top').innerHTML = aMonths[date.getMonth()] + ' ' + date.getFullYear();
-            
-            let dzien = 1;
-            for (let i = 0; i < td.length; i++) {
-            td[i].innerHTML = (i >= day && dzien <= lastDay.getDate())
-                ? '<button id="btnDzien-' + i + '" value="' + dzien + '" onclick="getSelectedDay(this)">' + (dzien++) + '</button>' // Use dzien+1 to display actual day
-                : '';
-                if (dnizaj.includes(dzien-1)) {
-                            document.getElementById("btnDzien-"+i).style.backgroundColor = "red";
-                        }
-                if (dzien-1<=date1.getDate() && i>=day && date.getFullYear()==date1.getFullYear() && date.getMonth()==date1.getMonth())
-                {
-                    
-                    document.getElementById("btnDzien-"+i).disabled=true;
-                    document.getElementById("btnDzien-"+i).style.backgroundColor = "lightgrey";
-                    
-                }
-            if (i >= 35) td[i].style.display = (day + dzien - 1 < 36) ? 'none' : ''; // hiding last row
-            }
-            }
-
-                function getSelectedDay(button) {
-                    const selectedDay = parseInt(button.value);
-                    const kolor = button.style.backgroundColor;
-                    const selectedMonth = date.getMonth();
-                    const selectedYear = date.getFullYear();
-                    const email=document.getElementById("mail").innerHTML;
-                    if (kolor=="red")
-                    {
-                        const xhr = new XMLHttpRequest();
-                        xhr.open('POST', 'główna.php');
-                        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-                        xhr.onload = function() {
-                            if (xhr.status === 200) 
-                            {
-                                console.log('Day and month sent to server:', selectedDay, selectedMonth+1, kolor);
-                            } 
-                            else 
-                            {
-                                console.error('Error sending day and month:', xhr.statusText);
-                            }
-                        };
-                        xhr.send('selectedDay=' + selectedDay + '&selectedMonth=' + (selectedMonth+1) + '&selectedYear=' + selectedYear + '&email=' + encodeURIComponent(email));
-                        
-                        setTimeout("location.reload()",150);
-                    }
-                    else
-                    {
-                        // You can now use the selectedDay variable for further processing
-                        console.log("Selected Day:", selectedDay);
-                        
-                        console.log(email);
-                        const xhr = new XMLHttpRequest();
-                        xhr.open('POST', 'główna.php');
-                        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-                        xhr.onload = function() {
-                            if (xhr.status === 200) 
-                            {
-                                console.log('Day and month sent to server:', selectedDay, selectedMonth+1);
-                            } 
-                            else 
-                            {
-                                console.error('Error sending day and month:', xhr.statusText);
-                            }
-                        };
-
-                        const promocje = document.querySelectorAll('#promocje');
-                        let promo = prompt("Podaj kod promocyjny (jeśli posiadasz):");
-                        let czypromo = 0;
-                        
-                        if (promo != null && promo!="")
-                        {
-                            for (let i=0; i< promocje.length; i++)
-                            {
-                                const promo2 = promocje[i].value;
-                                const promo3 = promo2.split(";");
-                                console.log(promo3[0]);
-                                if (promo3[0]==promo)
-                                {
-                                    czypromo=promo3[1];
-                                }
-                            }
-                        }
-                        
-                        const cena=100-czypromo;
-                        const zapłata = prompt("Twoja zapłata wynosi "+cena+" złotych, zgadzasz się?(Wpisz tak lub nie)");
-                        if (zapłata=="tak")
-                        {
-                            xhr.send('selectedDay=' + selectedDay + '&selectedMonth=' + (selectedMonth+1) + '&selectedYear=' + selectedYear + '&email=' + encodeURIComponent(email) + '&cena=' + cena);
-                        
-                            setTimeout("location.reload()",150);
-                        }
-                    }
-                    
-                    
-                
-
-
-                
-                
-            }
-                    
-                    
-            function deleteDay(id) {
-            
-            
-            const xhr = new XMLHttpRequest();
-                xhr.open('POST', 'główna.php');
-                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-                xhr.onload = function() {
-                    if (xhr.status === 200) {
-                        console.log('Day and month sent to server:', id);
-                    } else {
-                        console.error('Error sending day and month:', xhr.statusText);
-                    }
-                };
-                xhr.send('delete_person_id=' + id);
-                setTimeout("location.reload()",150);
-        }
-
-        function editDay(id) {
-            const innydzien = prompt("Podaj inny dzień:");
-            const innymiesiac = prompt("Podaj inny miesiąc:");
-
-            if (innydzien && innymiesiac) {
-                const xhr = new XMLHttpRequest();
-                xhr.open('POST', 'główna.php');
-                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-                xhr.onload = function () {
-                    if (xhr.status === 200) {
-                        console.log('Day edited successfully');
-                        location.reload();
-                    } else {
-                        console.error('Error editing day:', xhr.statusText);
-                    }
-                };
-                xhr.send('edit_person_id=' + id + '&innydzien=' + innydzien + '&innymiesiac=' + innymiesiac);
-                setTimeout("location.reload()",150);
-            }
-        }
-                
-                
+            <script src="skrypty.js">
 
             </script>
             <?php
-                
+
+                $con=mysqli_connect("localhost","root","","projekt");
+                $zap="SELECT AVG(ocena) as srednia FROM dzien WHERE ocena BETWEEN 1 AND 10";
+                $wynik=mysqli_query($con, $zap);
+                $row=mysqli_fetch_array($wynik);
+                $srednia=round($row['srednia'],2);
+                echo("<a>Średnia ocena naszych usług w skali od 1 do 10 to: $srednia</a><br>");
+                echo ("<a href='opinie.php'>Wiecej opinii</a>");
+                mysqli_close($con);
+
+
                 if(isset($_POST['selectedMonth']))
                 {
                     // Connect to MySQL database
@@ -316,6 +123,8 @@
                     $selectedMonth = $_POST['selectedMonth'];
                     $selectedYear = $_POST['selectedYear'];
                     $email = $db->real_escape_string($_POST['email']);
+                    $imie = $db->real_escape_string($_POST['imie']);
+                    $nazwisko =$db->real_escape_string($_POST['nazwisko']);
 
                     if (!isset($_POST['cena']))
                     {
@@ -338,7 +147,7 @@
                         
 
                         // Insert selected day into the database
-                        $sql = "INSERT INTO dzien (dzien, miesiac, rok, mail, cena) VALUES ($selectedDay, $selectedMonth, $selectedYear, '$email', $cena)";
+                        $sql = "INSERT INTO dzien (dzien, miesiac, rok, mail, imie, nazwisko, cena) VALUES ($selectedDay, $selectedMonth, $selectedYear, '$email', '$imie', '$nazwisko', $cena)";
                         if ($db->query($sql) === TRUE) {
                         echo "Day inserted successfully";
                         } else {
@@ -398,29 +207,54 @@
             {
                 $mail= $_SESSION['mail'];
                 $con=mysqli_connect("localhost","root","","projekt");
-                if ($mail="kamil.klemiato@wp.pl")
+                if ($mail=="kamil.klemiato@wp.pl")
                 {
-                    $zap="SELECT id, dzien, miesiac, rok, mail, cena FROM dzien";
+                    $zap="SELECT id, dzien, miesiac, rok, mail, cena, ocena, opinia FROM dzien";
                     $wynik=mysqli_query($con, $zap);
                     while($row=mysqli_fetch_array($wynik))
                     {
-                        echo "<tr><td>";
-                        echo("$row[id](id) $row[dzien] - $row[miesiac] - $row[rok] - $row[mail] - $row[cena]</td>");
-                        echo "<td><button onclick='deleteDay({$row['id']})'>usun</button></td>";
-                        echo "<td><button onclick='editDay({$row['id']})'>edytuj</button></td></tr>";
+                        if (!((date("d")>$row['dzien'] && date("m")==$row['miesiac'] && date("Y")==$row['rok']) || (date("m")>$row['miesiac'] && date("Y")==$row['rok']) || date("Y")>$row['rok']))
+                        {
+                            echo "<tr><td>";
+                            echo("$row[id](id) $row[dzien].$row[miesiac].$row[rok] - $row[mail] - $row[cena]zł</td>");
+                            echo "<td><button onclick='deleteDay({$row['id']})'>usun</button></td>";
+                            echo "<td><button onclick='editDay({$row['id']})'>edytuj</button></td></tr>";
+                            
+                        }
+                        else
+                        {
+                            echo "<tr><td>";
+                            echo("$row[id](id) $row[dzien].$row[miesiac].$row[rok] - $row[mail] - $row[cena]zł - $row[ocena] - $row[opinia]</td>");
+                            echo "<td><button onclick='deleteDay({$row['id']})'>usun</button></td>";
+                            echo "<td><button onclick='editDay({$row['id']})'>edytuj</button></td>";
+                            echo "<td><button onclick='Ocena({$row['id']})'>oceń</button></td></tr>";
+                        }   
+                        
 
                     }
                 }
                 else
                 {
-                    $zap="SELECT id, dzien, miesiac, rok FROM dzien WHERE mail='".$mail."'";
+                    $zap="SELECT id, dzien, miesiac, rok, mail, cena, ocena, opinia FROM dzien WHERE mail='".$mail."'";
                     $wynik=mysqli_query($con, $zap);
                     while($row=mysqli_fetch_array($wynik))
                     {
-                        echo "<tr><td>";
-                        echo("$row[dzien] - $row[miesiac] - $row[rok] - $row[mail]</td>");
-                        echo "<td><button onclick='deleteDay({$row['id']})'>usun</button></td>";
-                        echo "<td><button onclick='editDay({$row['id']})'>edytuj</button></td></tr>";
+                        if (!((date("d")>$row['dzien'] && date("m")==$row['miesiac'] && date("Y")==$row['rok']) || (date("m")>$row['miesiac'] && date("Y")==$row['rok']) || date("Y")>$row['rok']))
+                        {
+                            echo "<tr><td>";
+                            echo("$row[dzien].$row[miesiac].$row[rok] - $row[cena]zł</td>");
+                            echo "<td><button onclick='deleteDay({$row['id']})'>usun</button></td>";
+                            echo "<td><button onclick='editDay({$row['id']})'>edytuj</button></td></tr>";
+                            
+                        }
+                        else
+                        {
+                            echo "<tr><td>";
+                            echo("$row[dzien].$row[miesiac].$row[rok] - $row[cena]zł - $row[ocena] - $row[opinia]</td>");
+                            echo "<td><button onclick='deleteDay({$row['id']})'>usun</button></td>";
+                            echo "<td><button onclick='editDay({$row['id']})'>edytuj</button></td>";
+                            echo "<td><button onclick='Ocena({$row['id']})'>oceń</button></td></tr>";
+                        } 
 
                     }
                 }
@@ -470,8 +304,24 @@
                 
                 }
 
+                if (isset($_POST['Ocena_id']))
+                {
+                    $id=$_POST['Ocena_id'];
+                    $ocena=$_POST['Ocena'];
+                    $opinia=$_POST['Opinia'];
+                    $con = mysqli_connect("localhost", "root", "", "projekt");
+                    $zap2 = "UPDATE dzien SET ocena='$ocena', opinia='$opinia' WHERE id='$id'";
+                    if (mysqli_query($con, $zap2)) {
+                        echo "Day edited successfully";
+                    } else {
+                        echo "Error editing day: " . mysqli_error($con);
+                    }
+
+                }
+
                 
             ?>
             </table>
+    </div>
 </body>
 </html>

@@ -33,8 +33,12 @@
                 if ($tab[2]==$_POST["login"] && $tab[3]==$_POST["hasło"])
                 {
                     $_SESSION['logging']=true;
-                    echo '<a id="mail" value='.$_POST["login"].'>'.$_POST["login"]."<a>";
+                    echo '<a id="mail" value='.$_POST["login"].'>'.$_POST["login"]."<a><br>";
+                    echo '<a id="imie" value='.$tab[0].'>'.$tab[0]."<a> ";
+                    echo '<a id="nazwisko" value='.$tab[1].'>'.$tab[1]."<a>";
                     $_SESSION['mail']=$_POST["login"];
+                    $_SESSION['imie']=$tab[0];
+                    $_SESSION['nazwisko']=$tab[1];
                     
                     $nie=1;
                 }
