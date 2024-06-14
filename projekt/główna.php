@@ -1,11 +1,42 @@
 <!DOCTYPE html>
-<?php
+<?php session_start();
     if (!isset($_SESSION['logging']))
     {
-        $_SESSION['logging']=false;
+        
+        echo '<div class="user-info">';
+        include "logowanie.html";
+        
+        echo "<form method='POST' action='zarejestruj.php'>
+                 <input type='submit' value='zarejestruj' name='zarejestruj'>
+             </form>";
+             echo '</div>';
     }
-    //header("Refresh:0");
-?>
+     else{
+        
+            echo '<div class="user-info">';
+            echo '<a id="mail" value='.$_SESSION["mail"].'>'.$_SESSION["mail"]."<a><br>";
+            echo '<a id="imie" value='.$_SESSION['imie'].'>'.$_SESSION['imie']."<a> ";
+            echo '<a id="nazwisko" value='.$_SESSION['nazwisko'].'>'.$_SESSION['nazwisko']."<a>";
+            $_SESSION['logging']=false;
+        echo "<form method='POST' action='wyloguj.php'>
+                 <input type='submit' value='wyloguj' name='wyloguj'>
+             </form>"; 
+             include "raport.html"; 
+            echo '</div>';
+          
+              echo '<div class="flexible">';
+              include "wyszukiwanie.html";
+             if (isset($_SESSION['termin']))
+             {
+                 echo "Nabliższy możliwy termin zarezerwowania: ".$_SESSION['termin'];
+             }
+              echo '</div>';
+             
+                  
+     }
+     
+     
+     ?>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -15,43 +46,11 @@
 </head>
 <body>
     
-    <div>
-    
+<div id="container">
+    <div id="header">
+        <h1>Witamy w naszym wspaniałym ogrodzie!</h1>
+    </div>
         <?php
-            
-            if (isset($_POST['zaloguj']))
-            {
-                include 'logowanie.php';
-                session_destroy();
-                if ($_SESSION['logging']==false)
-                {
-                    echo '<form method="POST">
-                
-                    <input type="submit" name="zarejestruj" value="zarejestruj">
-                    </form>';
-                }
-                
-            }
-            else if (isset($_POST['zarejestruj']))
-            {
-                include 'zarejestruj.php';
-                echo '<form method="POST">
-                <input type="submit" name="zaloguj" value="zaloguj">
-                
-            </form>';
-                
-            }
-            else
-            {
-                
-                $_SESSION['logging']=false;
-                echo '<form method="POST">
-                <input type="submit" name="zaloguj" value="zaloguj">
-                <input type="submit" name="zarejestruj" value="zarejestruj">
-                </form>';
-            }
-            
-
             $con=mysqli_connect("localhost","root","","projekt");
             $zap="SELECT dzien, miesiac, rok, mail FROM dzien";
             $wynik=mysqli_query($con, $zap);
@@ -95,6 +94,7 @@
             </tr><tr><td style="display: none;"></td><td style="display: none;"></td><td style="display: none;"></td><td style="display: none;"></td><td style="display: none;"></td><td style="display: none;"></td><td style="display: none;"></td></tr><tr>
             </tr></tbody>
             </table>
+            
             <script src="skrypty.js">
 
             </script>
@@ -163,11 +163,57 @@
                 } 
          
             ?>
-
+    <div class="overflow-container">
             <table>
             <?php
-
+            abstract class mail {
+                abstract function getmail();
+            }
+            trait sprawdz_czy_widac{
+                function sprawdzam(){
+                    echo "widoczny";
+                }
+            }
+        
+            interface dostan{
+                function setmail($mail);
+                function getimie();
+                function getnazwisko();
+            }
+        
+            class User extends mail implements dostan{
+                use sprawdz_czy_widac;
+                public $imie="";
+                public $nazwisko="";
+                public $mail="";
+                function __construct($imie, $nazwisko, $mail){
+                    $this->imie=$imie;
+                    $this->nazwisko=$nazwisko;
+                    $this->mail=$mail;
+                }
+                function setmail($mail){
+                    $this->mail=$mail;
+                }
+                function setimie($imie){
+                    $this->imie=$imie;
+                }
+                function setnazwisko($nazwisko){
+                    $this->nazwisko=$nazwisko;
+                }
+                function getimie(){
+                    return $this->imie;
+                }
+                function getnazwisko(){
+                    return $this->nazwisko;
+                }
+                function getmail(){
+                    return $this->mail;
+                }
+            }
+        
+            $user = new User("", "", "");
             
+
                 function notifyQueue($id) {
                     $db = new mysqli('localhost', 'root', '', 'projekt');
                     
@@ -189,8 +235,8 @@
                         while ($row = $result->fetch_assoc()) {
                             $to = $row['mail'];
                             $subject = "Termin zwolniony";
-                            $message = "Zwolnił się termin: $dzien-$miesiac-$rok. Prosimy o ponowne zarezerwowanie.";
-                            $headers = "From: no-reply@klemiato.com";
+                            $message = "Zwolnił się termin: $dzien-$miesiac-$rok.";
+                            $headers = "From: klemensmandzaro@gmail.com";
                 
                             mail($to, $subject, $message, $headers);
                             
@@ -203,9 +249,12 @@
                     $db->close();
                 }
 
-            if ($_SESSION['logging']==true)
+            if (isset($_SESSION['logging']))
             {
-                $mail= $_SESSION['mail'];
+                $user->setmail($_SESSION['mail']);
+                $user->setimie($_SESSION['imie']);
+                $user->setnazwisko($_SESSION['nazwisko']);
+                $mail= $user->getmail();
                 $con=mysqli_connect("localhost","root","","projekt");
                 if ($mail=="kamil.klemiato@wp.pl")
                 {
@@ -218,7 +267,8 @@
                             echo "<tr><td>";
                             echo("$row[id](id) $row[dzien].$row[miesiac].$row[rok] - $row[mail] - $row[cena]zł</td>");
                             echo "<td><button onclick='deleteDay({$row['id']})'>usun</button></td>";
-                            echo "<td><button onclick='editDay({$row['id']})'>edytuj</button></td></tr>";
+                            echo "<td><button onclick='editDay({$row['id']})'>edytuj</button></td>";
+                            echo "<td><button onclick='editcena({$row['id']})'>zmien_cene</button></td></tr>";
                             
                         }
                         else
@@ -227,7 +277,9 @@
                             echo("$row[id](id) $row[dzien].$row[miesiac].$row[rok] - $row[mail] - $row[cena]zł - $row[ocena] - $row[opinia]</td>");
                             echo "<td><button onclick='deleteDay({$row['id']})'>usun</button></td>";
                             echo "<td><button onclick='editDay({$row['id']})'>edytuj</button></td>";
+                            echo "<td><button onclick='editcena({$row['id']})'>zmien_cene</button></td>";
                             echo "<td><button onclick='Ocena({$row['id']})'>oceń</button></td></tr>";
+                            
                         }   
                         
 
@@ -289,17 +341,33 @@
             
 
                 if (isset($_POST['edit_person_id']) && isset($_POST['innydzien']) && isset($_POST['innymiesiac'])) {
-                    echo 'ppp';
                     $PersonIdToEdit = (int)$_POST['edit_person_id'];
                     $innydzien = (int)$_POST['innydzien'];
                     $innymiesiac = (int)$_POST['innymiesiac'];
+                    $cena = (int)$_POST['innacena'];
                     $con = mysqli_connect("localhost", "root", "", "projekt");
-                    $zap2 = "UPDATE dzien SET dzien='$innydzien', miesiac='$innymiesiac' WHERE id='$PersonIdToEdit'";
-                    if (mysqli_query($con, $zap2)) {
-                        echo "Day edited successfully";
-                    } else {
-                        echo "Error editing day: " . mysqli_error($con);
+
+                    $zap = "SELECT COUNT(dzien) as ile FROM dzien WHERE miesiac='$innymiesiac' AND dzien='$innydzien'";
+                    $wynik=mysqli_query($con, $zap);
+
+                    while($row=mysqli_fetch_array($wynik))
+                    {
+                        if ($row['ile']>0)
+                        {
+                            echo '<script>alert("Termin zajęty nie możesz na niego zmienić")</script>';
+                        }  
+                        else
+                        {
+                            $zap2 = "UPDATE dzien SET dzien='$innydzien', miesiac='$innymiesiac', cena='$cena' WHERE id='$PersonIdToEdit'";
+                            if (mysqli_query($con, $zap2)) {
+                                echo "Day edited successfully";
+                            } else {
+                                echo "Error editing day: " . mysqli_error($con);
+                            }
+                        }                     
                     }
+
+                    
                 
                 
                 }
@@ -319,9 +387,30 @@
 
                 }
 
+                if (isset($_POST["edit_cena_id"]))
+                {
+                    $id = $_POST["edit_cena_id"];
+                    $cena = $_POST["innacena"];
+                    $con = mysqli_connect("localhost", "root", "", "projekt");
+                    $zap2 = "UPDATE dzien SET cena='$cena' WHERE id='$id'";
+                    if (mysqli_query($con, $zap2)) {
+                        echo "Day edited successfully";
+                    } else {
+                        echo "Error editing day: " . mysqli_error($con);
+                    }
+                }
+
+
                 
+                
+
+                //dodac inne ceny w innych okresach zeby dodac kryteria wyszukiwania oraz np przedzialy czasowe
+                // raport to zeby dostawal uzytkownik np pdf albo na stronie 
             ?>
             </table>
-    </div>
+            </div>
+            <a>Kontakt telefoniczny: 123-456-789</a><br>
+            <a>Adres e-mail: 0FtZI@example.com</a>
+</div>  
 </body>
 </html>

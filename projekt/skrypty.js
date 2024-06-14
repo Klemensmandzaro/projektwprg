@@ -77,7 +77,7 @@
                     
                 }
                                               
-                if (dzien<=date1.getDate() && i>=day && date.getFullYear()==date1.getFullYear() && date.getMonth()==date1.getMonth())
+                if (dzien-1<=date1.getDate() && i>=day && date.getFullYear()==date1.getFullYear() && date.getMonth()==date1.getMonth())
                 {
                     
                     document.getElementById("btnDzien-"+i).disabled=true;
@@ -152,8 +152,8 @@
                                 }
                             }
                         }
-                        
-                        const cena=100-czypromo;
+                        const ceny=[100,100,200,200,300,600,100,500,200,200,100,100];
+                        const cena=ceny[selectedMonth]-czypromo;
                         const zapłata = confirm("Twoja zapłata wynosi "+cena+" złotych, zgadzasz się?");
                         if (zapłata==true)
                         {
@@ -192,7 +192,11 @@
         function editDay(id) {
             const innydzien = prompt("Podaj inny dzień:");
             const innymiesiac = prompt("Podaj inny miesiąc:");
-
+            const ceny=[0,100,100,200,200,300,600,100,500,200,200,100,100];
+            
+                        
+            const cena=ceny[innymiesiac];
+            const zapłata = confirm("Twoja zapłata za nowy termin wynosi "+cena+" złotych, zgadzasz się?");
             if (innydzien && innymiesiac) {
                 const xhr = new XMLHttpRequest();
                 xhr.open('POST', 'główna.php');
@@ -205,8 +209,12 @@
                         console.error('Error editing day:', xhr.statusText);
                     }
                 };
-                xhr.send('edit_person_id=' + id + '&innydzien=' + innydzien + '&innymiesiac=' + innymiesiac);
-                setTimeout("location.reload()",150);
+                if (zapłata==true)
+                    {
+                        xhr.send('edit_person_id=' + id + '&innydzien=' + innydzien + '&innymiesiac=' + innymiesiac + '&innacena=' + cena);
+                        setTimeout("location.reload()",150);
+                    }
+                
             }
         }
 
@@ -231,6 +239,29 @@
                     }
                 };
                 xhr.send('Ocena_id=' + id + '&Ocena=' + Ocena + '&Opinia=' + encodeURIComponent(Opinia));
+                setTimeout("location.reload()",150);
+            
+        }
+
+        function editcena(id) {
+            const innacena = prompt("Podaj inną cene:");
+
+            while (!(innacena >=0 && innacena<999))
+                {
+                    const innacena = prompt("Podaj zmiane ceny(poprawną 0-999): ");
+                }
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', 'główna.php');
+                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                xhr.onload = function () {
+                    if (xhr.status === 200) {
+                        console.log('Day edited successfully');
+                        location.reload();
+                    } else {
+                        console.error('Error editing day:', xhr.statusText);
+                    }
+                };
+                xhr.send('edit_cena_id=' + id + '&innacena=' + innacena);
                 setTimeout("location.reload()",150);
             
         }
